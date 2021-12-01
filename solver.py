@@ -2,14 +2,14 @@ from parse import read_input_file, write_output_file
 import os
 import Task
 
-def find_best_schedule(tasks, schedule, start_time, total_time=0):
+def find_bucket_schedule(tasks, schedule, start_time, total_time=0):
         if not tasks:
             return schedule, calc_benefit(schedule, start_time, start_time + 288), start_time + total_time
 
         task = tasks[0]
 
-        return max(find_best_schedule(tasks[1:], schedule + [task], start_time, total_time + task.get_duration()), 
-                   find_best_schedule(tasks[1:], schedule, start_time, total_time), 
+        return max(find_bucket_schedule(tasks[1:], schedule + [task], start_time, total_time + task.get_duration()), 
+                   find_bucket_schedule(tasks[1:], schedule, start_time, total_time), 
                    key = lambda k: k[1])
 
 def find_schedule(tasks, schedule=[]):
@@ -55,7 +55,7 @@ def remove_weak(tasks):
     return [task for task in tasks if task.get_max_benefit() > average_benefit * .1]
 
 def calc_task_heuristic(task):
-    return (task.get_deadline() - task.get_duration()) - 0.2 * task.get_max_benefit()
+    return (task.get_deadline() - task.get_duration()) + 0 * task.get_max_benefit()
 
 def solve(tasks):
     """
@@ -76,8 +76,8 @@ def solve(tasks):
 
     for i in range(5):
 
-        bucket = [tasks.pop(0) for i in range(17)]
-        buffer = [tasks.pop(0) for i in range(3)]
+        bucket = [tasks.pop(0) for i in range(19)]
+        buffer = [tasks.pop(0) for i in range(1)]
 
         schedule, benefit, start_time = find_best_schedule(bucket, [], start_time)
         big_schedule += schedule
@@ -87,12 +87,13 @@ def solve(tasks):
         leftovers.append(Task.Task(100 + i, start_time, int(duration), float(benefit)))
         leftovers += buffer
 
+        ""
         for task in schedule:
             print(task)
+        ""
         print("dur:", duration)
         print("ben:", benefit)
         print()
-
 
     final_schedule, benefit = find_schedule(leftovers) 
     for task in final_schedule:
@@ -113,14 +114,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-# Here's an example of how to run your solver.
-# if __name__ == '__main__':
-#     for input_path in os.listdir('inputs/'):
-#         output_path = 'outputs/' + input_path[:-3] + '.out'
-#         tasks = read_input_file(input_path)
-#         output = solve(tasks)
-#         write_output_file(output_path, output)
