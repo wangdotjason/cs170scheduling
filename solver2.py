@@ -54,6 +54,8 @@ def remove_weak(tasks):
 
     return [task for task in tasks if task.get_max_benefit() > average_benefit * .1]
 
+def calc_task_heuristic(task):
+    return (task.get_deadline() - task.get_duration()) - 0.2 * task.get_max_benefit()
 
 def solve(tasks):
     """
@@ -63,7 +65,7 @@ def solve(tasks):
         output: list of igloos in order of polishing  
     """
 
-    tasks = sorted(tasks, key=lambda x: x.get_deadline() - x.get_duration())
+    tasks = sorted(tasks, key=lambda x: calc_task_heuristic(x))
     tasks = zero_calibrate(tasks)
     #tasks = remove_weak(tasks)
 
@@ -96,7 +98,7 @@ def solve(tasks):
     for task in final_schedule:
         print(task)
     print(benefit)
-    print(sum([task.get_duration() for task in thing]))
+    print(sum([task.get_duration() for task in final_schedule]))
 
     #print output
     schedule_ids = [task.get_task_id() for task in big_schedule]
