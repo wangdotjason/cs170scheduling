@@ -2,20 +2,6 @@ from parse import read_input_file, write_output_file
 import os
 import Task
 
-def find_schedule(tasks, start_time=0, buckets=1):
-
-    def find_schedule_helper(tasks, schedule=[], elapsed_time=0):
-        if not tasks:
-            return schedule, calc_benefit(schedule, start_time, start_time + (1440/buckets)), elapsed_time
-
-        task = tasks[0]
-
-        return max(find_schedule_helper(tasks[1:], schedule + [task], elapsed_time + task.get_duration()), 
-                   find_schedule_helper(tasks[1:], schedule, elapsed_time), 
-                   key = lambda k: k[1])
-
-    return find_schedule_helper(tasks)
-
 def calc_benefit(tasks, start_time=0, max_time=1440):
     benefit = 0
     for task in tasks: 
@@ -32,13 +18,22 @@ def calc_benefit(tasks, start_time=0, max_time=1440):
 def zero_calibrate(tasks):
     for task in tasks:
         latest_start = task.get_deadline() - task.get_duration()
-
-        if latest_start >= 0:
-            break
-        else: 
+        if latest_start < 0:
             task.perfect_benefit = task.get_late_benefit(-latest_start)
             task.deadline = task.get_duration()
+
     return tasks
+
+def find_schedule(tasks, start_time=0, buckets=1):
+    def find_schedule_helper(tasks, schedule=[], elapsed_time=0):
+        if not tasks:
+            return schedule, calc_benefit(schedule, start_time, start_time + (1440/buckets)), elapsed_time
+
+        return max(find_schedule_helper(tasks[1:], schedule + [tasks[0]], elapsed_time + tasks[0].get_duration()), 
+                   find_schedule_helper(tasks[1:], schedule, elapsed_time), 
+                   key = lambda k: k[1])
+
+    return find_schedule_helper(tasks)
 
 def calc_task_heuristic(task):
     return (task.get_deadline() - task.get_duration()) - .5 * task.get_max_benefit()
@@ -50,8 +45,7 @@ def solve(tasks):
     Returns:
         output: list of igloos in order of polishing  
     """
-    tasks = sorted(tasks, key=lambda x: x.get_deadline() - x.get_duration())
-    tasks = zero_calibrate(tasks)
+    tasks = sorted(zero_calibrate(tasks), key=lambda x: x.get_deadline() - x.get_duration())
     stack = []
     big_task_dict = {}
     num_buckets = 5
@@ -80,7 +74,7 @@ def solve(tasks):
     print("benefit:", final_benefit)
     print("duration:", final_duration)
 
-    #expand big tasks to their individual tasks
+    #convert big tasks to their individual tasks
     expanded_final_schedule = []
     for task in final_schedule:
         if task in big_task_dict:
