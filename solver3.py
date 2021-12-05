@@ -1,7 +1,7 @@
 from parse import read_input_file, write_output_file
 import os
 import Task
-import heapq as hq
+import random
 
 def find_best_schedule(tasks, schedule, max_time):
         if not tasks:
@@ -64,23 +64,19 @@ def checkDeadline(currTime, task2):
         return False
     return True
 
-def getInitialGreedySoln(tasks):
-    currTime = 0;
+def greedy(tasks, a, b, c):
+    tasks = sorted(tasks, key=lambda x: a*(x.get_deadline() - x.get_duration()) - c*x.get_max_benefit() - b*x.get_max_benefit()/x.get_duration())
+    currTime = 0
     schedule = []
-    notinschedule = []
-    while(len(tasks)>0):
-        if(checkDeadline(currTime, tasks[0])):
-            schedule.append(tasks[0])
-            currTime+=tasks[0].get_duration()
-        else:
-            notinschedule.append(tasks[0])
-        del tasks[0]
-    return schedule, notinschedule
-
-def calcProfit(schedule):
     sum = 0
-    for task in schedule: sum+=task.get_max_benefit()
-    return sum
+    while (len(tasks) > 0):
+        if (checkDeadline(currTime, tasks[0])):
+            schedule.append(tasks[0])
+            sum+=tasks[0].get_max_benefit()
+            currTime += tasks[0].get_duration()
+        del tasks[0]
+    return schedule, sum
+
 
 def solve(tasks):
     """
@@ -90,77 +86,47 @@ def solve(tasks):
         output: list of igloos in order of polishing  
     """
 
-    tasks = sorted(tasks, key=lambda x: x.get_deadline() - x.get_duration())
     tasks = zero_calibrate(tasks)
     tasks = remove_weak(tasks)
+    max = 0
+    iter = 10000
+    final_sched = []
+    a_f = 0
+    b_f = 0
+    c_f = 0
+    for i in range(0,iter):
+        a = 1*random.random()
+        b = 20*random.random()
+        c = 1*random.random()
+        schedule, sum = greedy(tasks, a ,b, c)
+        if(sum>max):
+            max = sum
+            final_sched = schedule
+            a_f = a
+            b_f = b
+            c_f = c
+    checkSchedule(final_sched)
+    print(a_f)
+    print(b_f)
+    print(c_f)
 
-    schedule_optimal, benefit_opt = find_schedule(tasks)
-    print("OPTIMAL_SCHEDULE")
-    printSchedule(schedule_optimal)
-    print(benefit_opt)
-
-    schedule, notinschedule = getInitialGreedySoln(tasks)
-
-    print("SCHEDULE_GREEDY")
-    printSchedule(schedule)
-    print(calcProfit(schedule))
-
-    heap = []
-    for task in notinschedule: hq.heappush(heap, task)
-    #print("HEAP")
-    #printSchedule(heap)
-
-    maxIter = 1000
-    for i in range(0,maxIter):
-        if(len(heap)==0):
-            break;
-        schedule_opt, popped = replace(schedule, hq.heappop(heap))
-        if(calcProfit(schedule_opt) > calcProfit(schedule)):
-            schedule = schedule_opt
-            for t in popped:
-                hq.heappush(heap, t)
-        else:
-            hq.heappop(heap)
-
-    print("FINAL SCHEDULE")
-    printSchedule(schedule)
-    print(calcProfit(schedule))
-    print(checkSchedule(schedule))
-
-def printSchedule(schedule):
-    for task in schedule: print(task)
-
-def replace(schedule, task):
-    currentTime = 0
-    before = 0
-    latest_Time = task.get_deadline()-task.get_duration()
-    for t in schedule:
-        if(currentTime + t.get_duration()>latest_Time):
-            projectedTime = currentTime + task.get_duration()
-            break;
-        currentTime += t.get_duration()
-        before += 1
-
-    scheduleF = schedule[:before]
-    scheduleF.append(task)
-    poppedItems = []
-    for i in range(before, len(schedule)):
-        if(schedule[i].get_deadline() - schedule[i].get_duration() > projectedTime):
-            scheduleF.append(schedule[i])
-        else:
-            poppedItems.append(schedule[i])
-
-    return scheduleF, poppedItems
-
+def calcProfit(schedule):
+    sum = 0
+    for task in schedule:
+        print(task)
+        sum+=task.get_max_benefit()
+    return sum
 
 def checkSchedule(schedule):
+    print(calcProfit(schedule))
     currTime = 0
     while(len(schedule)>1):
         currTime += schedule[0].get_duration()
         if(schedule[1].get_deadline()-schedule[1].get_duration()<currTime):
-            return False
+            print("False")
+            break
         del schedule[0]
-    return True
+    print("True")
 
 def main():
     for input_path in os.listdir('inputs/'):

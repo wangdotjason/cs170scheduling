@@ -17,9 +17,9 @@ class Task:
         - Task object: corresponding Task object
 
         Sample usage:
-        >>> import Task
-        >>> task0 = Task.Task(0, 1, 2, 3.0)
-        >>> print(task0)
+        #>>> import Task
+        #>>> task0 = Task.Task(0, 1, 2, 3.0)
+        #>>> print(task0)
         Task 0 has deadline 1, duration 2, and max benefit 3
         """
         self.task_id = task_id
@@ -96,3 +96,5 @@ class Task:
         return "Task {} has deadline {}, duration {}, and max benefit {}".format(self.get_task_id(), self.get_deadline(), self.get_duration(), self.get_max_benefit())
 
     # Feel free to add more helper functions here
+    def __lt__(self, nxt):
+        return self.get_max_benefit() > nxt.get_max_benefit()
