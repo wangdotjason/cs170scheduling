@@ -3,17 +3,14 @@ import os
 import Task
 import heapq as hq
 
-def find_best_schedule(tasks, schedule, max_time):
+def find_best_schedule(tasks, schedule, start_time, total_time=0):
         if not tasks:
-            return schedule, calc_benefit(schedule, max_time - 240, max_time), tasks
+            return schedule, calc_benefit(schedule, start_time, start_time + 288), start_time + total_time
 
         task = tasks[0]
 
-        if task.get_deadline() >= max_time: 
-            return schedule, calc_benefit(schedule, max_time - 240, max_time), tasks
-
-        return max(find_best_schedule(tasks[1:], schedule + [task], max_time), 
-                   find_best_schedule(tasks[1:], schedule, max_time), 
+        return max(find_best_schedule(tasks[1:], schedule + [task], start_time, total_time + task.get_duration()), 
+                   find_best_schedule(tasks[1:], schedule, start_time, total_time), 
                    key = lambda k: k[1])
 
 def find_schedule(tasks, schedule=[]):
@@ -24,8 +21,7 @@ def find_schedule(tasks, schedule=[]):
                find_schedule(tasks[1:], schedule), 
                key = lambda k: k[1])
 
-
-def calc_benefit(tasks, start_time, max_time):
+def calc_benefit(tasks, start_time, max_time=1440):
     benefit = 0
     time = start_time
     for task in tasks: 
@@ -59,6 +55,7 @@ def remove_weak(tasks):
 
     return [task for task in tasks if task.get_max_benefit() > average_benefit * .1]
 
+<<<<<<< HEAD
 def checkDeadline(currTime, task2):
     if(task2.get_deadline()-task2.get_duration() < currTime):
         return False
@@ -82,6 +79,10 @@ def calcProfit(schedule):
     for task in schedule: sum+=task.get_max_benefit()
     return sum
 
+def calc_task_heuristic(task):
+    return (task.get_deadline() - task.get_duration()) - 0.2 * task.get_max_benefit()
+
+
 def solve(tasks):
     """
     Args:
@@ -90,8 +91,9 @@ def solve(tasks):
         output: list of igloos in order of polishing  
     """
 
-    tasks = sorted(tasks, key=lambda x: x.get_deadline() - x.get_duration())
+    tasks = sorted(tasks, key=lambda x: calc_task_heuristic(x))
     tasks = zero_calibrate(tasks)
+
     tasks = remove_weak(tasks)
 
     schedule_optimal, benefit_opt = find_schedule(tasks)
@@ -151,6 +153,40 @@ def replace(schedule, task):
             poppedItems.append(schedule[i])
 
     return scheduleF, poppedItems
+
+
+    #tasks = remove_weak(tasks)
+
+    big_schedule = []
+    big_benefit = 0
+    leftovers = []
+    start_time = 0
+
+    for i in range(5):
+
+        bucket = [tasks.pop(0) for i in range(17)]
+        buffer = [tasks.pop(0) for i in range(3)]
+
+        schedule, benefit, start_time = find_best_schedule(bucket, [], start_time)
+        big_schedule += schedule
+        big_benefit += benefit
+        duration = sum([task.get_duration() for task in schedule])
+
+        leftovers.append(Task.Task(100 + i, start_time, int(duration), float(benefit)))
+        leftovers += buffer
+
+        for task in schedule:
+            print(task)
+        print("dur:", duration)
+        print("ben:", benefit)
+        print()
+
+
+    final_schedule, benefit = find_schedule(leftovers) 
+    for task in final_schedule:
+        print(task)
+    print(benefit)
+    print(sum([task.get_duration() for task in final_schedule]))
 
 
 def checkSchedule(schedule):
