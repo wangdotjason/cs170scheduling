@@ -25,6 +25,8 @@ class Task:
         self.task_id = task_id
         self.deadline = deadline
         self.duration = duration
+        self.start = deadline - duration
+        self.end = deadline
         self.perfect_benefit = perfect_benefit
         
     def get_task_id(self) -> int:
@@ -36,6 +38,30 @@ class Task:
         0
         """
         return self.task_id
+
+    def shift_left(self, amount):
+        self.start -= amount
+        self.end -= amount
+
+    def get_start(self) -> int:
+        """ 
+        Returns the start time of this Task 
+
+        Sample usage:
+        >>> task0.get_deadline()
+        1
+        """
+        return self.start
+
+    def get_end(self) -> int:
+        """ 
+        Returns the start time of this Task 
+
+        Sample usage:
+        >>> task0.get_deadline()
+        1
+        """
+        return self.end
 
     def get_deadline(self) -> int:
         """ 
@@ -93,7 +119,7 @@ class Task:
         >>> str(task0)
         Task 0 has deadline 1, duration 2, and max benefit 3.0
         """
-        return "Task {} has deadline {}, duration {}, and max benefit {}".format(self.get_task_id(), self.get_deadline(), self.get_duration(), self.get_max_benefit())
+        return "Task {} start {} end {} , deadline {}, duration {} and max benefit {}".format(self.get_task_id(), self.get_start(), self.get_end(), self.get_deadline(), self.get_duration(), self.get_max_benefit())
 
     # Feel free to add more helper functions here
     def __lt__(self, nxt):

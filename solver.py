@@ -67,13 +67,6 @@ def solve(tasks):
 
     final_schedule, final_benefit, final_duration = find_schedule(stack) 
 
-    #print schedule
-    for task in final_schedule:
-        print(task)
-    print()
-    print("benefit:", final_benefit)
-    print("duration:", final_duration)
-
     #convert big tasks to their individual tasks
     expanded_final_schedule = []
     for task in final_schedule:
@@ -81,6 +74,14 @@ def solve(tasks):
             expanded_final_schedule += big_task_dict[task]
         else:
             expanded_final_schedule.append(task)
+
+    #print schedule
+    for task in expanded_final_schedule:
+        print(task)
+    print()
+    print("benefit:", final_benefit)
+    print(calc_benefit(expanded_final_schedule))
+    print("duration:", final_duration)
 
     return [task.get_task_id() for task in expanded_final_schedule]
 
