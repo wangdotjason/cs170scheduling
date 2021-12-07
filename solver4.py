@@ -153,7 +153,7 @@ def solve(tasks):
 
     tasks = zero_calibrate(tasks)
     max_profit = 0
-    iterations = 10000
+    iterations = 3000
     final_sched = []
 
     for i in range(iterations):
@@ -166,12 +166,10 @@ def solve(tasks):
             max_profit = sum_profit
             final_sched = schedule
 
-    print(calcProfit(final_sched))
+    #print(calcProfit(final_sched))
     print(max_profit)
     print(sum([task.get_duration() for task in final_sched]))
 
-    for task in final_sched:
-        print(task)
 
     return [task.get_task_id() for task in final_sched]
 
