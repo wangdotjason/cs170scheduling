@@ -153,7 +153,7 @@ def solve(tasks):
 
     tasks = zero_calibrate(tasks)
     max_profit = 0
-    iterations = 1
+    iterations = 4000
     final_sched = []
 
     for i in range(iterations):
