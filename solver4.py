@@ -88,21 +88,15 @@ def build_schedule(tasks, a, b):
             if len(schedule) == 1:
                 if task.get_end() <= slot.get_start():
                     schedule.insert(0, task)
-                    profit += task.get_max_benefit()
-                    duration += task.get_duration()
                     break
 
                 elif overlap(task, slot):
                     if shiftable(space, task, slot):
                         schedule = shift(schedule, i, slot.get_end() - task.get_start())
                         schedule.append(task)
-                        profit += task.get_max_benefit()
-                        duration += task.get_duration()
                         break
                 else: 
                     schedule.append(task)
-                    profit += task.get_max_benefit()
-                    duration += task.get_duration()
                     break
 
             elif (i+1) == len(schedule):
@@ -110,52 +104,43 @@ def build_schedule(tasks, a, b):
                     if shiftable(space, task, slot):
                         schedule = shift(schedule, i, slot.get_end() - task.get_start())
                         schedule.insert(i+1, task)
-                        profit += task.get_max_benefit()
-                        duration += task.get_duration()
                     break
                 elif task.get_start() >= slot.get_end():
-
                     schedule.append(task)
-                    profit += task.get_max_benefit()
-                    duration += task.get_duration()
                     break
                 else:
                     if prev_slot.get_end() > task.get_start():
                         if shiftable(prev_space, task, prev_slot):
                             schedule = shift(schedule, i-1, prev_slot.get_end() - task.get_start())
                             schedule.insert(i, task)
-                            profit += task.get_max_benefit()
-                            duration += task.get_duration()
                         else:
                             unused.append(task)
                         break
                     else:
                         schedule.insert(i, task)
-                        profit += task.get_max_benefit()
-                        duration += task.get_duration()
                     break
 
             elif slot.get_start() > task.get_end():
                 if i == 0:
                     schedule.insert(0, task)
-                    profit += task.get_max_benefit()
-                    duration += task.get_duration()
                     break
                 elif overlap(task, prev_slot) and shiftable(prev_space, task, prev_slot):
                     schedule = shift(schedule, i-1, prev_slot.get_end() - task.get_start())
                     schedule.insert(i, task)
-                    profit += task.get_max_benefit()
-                    duration += task.get_duration()
                     break
             end = slot.get_end()
             prev_space = space
+
+    duration = sum([task.get_duration() for task in schedule])
 
     for task in unused:
         if duration + task.get_duration() <= 1440:
             schedule.append(task)
             duration += task.get_duration()
 
-    return schedule, profit 
+    profit = calc_benefit(schedule)
+
+    return schedule, profit, duration
 
 
 def solve(tasks):
@@ -168,14 +153,14 @@ def solve(tasks):
 
     tasks = zero_calibrate(tasks)
     max_profit = 0
-    iterations = 4000
+    iterations = 1
     final_sched = []
 
     for i in range(iterations):
         a = 1*random.random()
         b = 10*random.random()
 
-        schedule, sum_profit = build_schedule(copy.deepcopy(tasks), a, b)
+        schedule, sum_profit, fin_dur = build_schedule(copy.deepcopy(tasks), a, b)
         #sum_profit = calc_benefit(schedule)
         if(sum_profit > max_profit):
             max_profit = sum_profit
@@ -183,7 +168,7 @@ def solve(tasks):
 
     #print(calcProfit(final_sched))
     print(max_profit)
-    print(sum([task.get_duration() for task in final_sched]))
+    print(fin_dur)
 
 
     return [task.get_task_id() for task in final_sched]
