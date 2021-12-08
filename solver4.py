@@ -73,6 +73,8 @@ def build_schedule(tasks, a, b):
     tasks = sorted(tasks, key=heuristic)
     schedule = [tasks[0]]
     profit = tasks[0].get_max_benefit()
+    unused = []
+    duration = 0
 
     for task in tasks[1:]:
         space = 0
@@ -87,6 +89,7 @@ def build_schedule(tasks, a, b):
                 if task.get_end() <= slot.get_start():
                     schedule.insert(0, task)
                     profit += task.get_max_benefit()
+                    duration += task.get_duration()
                     break
 
                 elif overlap(task, slot):
@@ -94,25 +97,27 @@ def build_schedule(tasks, a, b):
                         schedule = shift(schedule, i, slot.get_end() - task.get_start())
                         schedule.append(task)
                         profit += task.get_max_benefit()
+                        duration += task.get_duration()
                         break
                 else: 
                     schedule.append(task)
                     profit += task.get_max_benefit()
+                    duration += task.get_duration()
                     break
 
             elif (i+1) == len(schedule):
-  
                 if overlap(task, slot): 
-
                     if shiftable(space, task, slot):
                         schedule = shift(schedule, i, slot.get_end() - task.get_start())
                         schedule.insert(i+1, task)
                         profit += task.get_max_benefit()
+                        duration += task.get_duration()
                     break
                 elif task.get_start() >= slot.get_end():
 
                     schedule.append(task)
                     profit += task.get_max_benefit()
+                    duration += task.get_duration()
                     break
                 else:
                     if prev_slot.get_end() > task.get_start():
@@ -120,25 +125,35 @@ def build_schedule(tasks, a, b):
                             schedule = shift(schedule, i-1, prev_slot.get_end() - task.get_start())
                             schedule.insert(i, task)
                             profit += task.get_max_benefit()
+                            duration += task.get_duration()
+                        else:
+                            unused.append(task)
                         break
                     else:
                         schedule.insert(i, task)
                         profit += task.get_max_benefit()
+                        duration += task.get_duration()
                     break
 
             elif slot.get_start() > task.get_end():
                 if i == 0:
                     schedule.insert(0, task)
                     profit += task.get_max_benefit()
+                    duration += task.get_duration()
                     break
                 elif overlap(task, prev_slot) and shiftable(prev_space, task, prev_slot):
                     schedule = shift(schedule, i-1, prev_slot.get_end() - task.get_start())
                     schedule.insert(i, task)
                     profit += task.get_max_benefit()
+                    duration += task.get_duration()
                     break
             end = slot.get_end()
             prev_space = space
 
+    for task in unused:
+        if duration + task.get_duration() <= 1440:
+            schedule.append(task)
+            duration += task.get_duration()
 
     return schedule, profit 
 
@@ -153,7 +168,7 @@ def solve(tasks):
 
     tasks = zero_calibrate(tasks)
     max_profit = 0
-    iterations = 3000
+    iterations = 4000
     final_sched = []
 
     for i in range(iterations):
